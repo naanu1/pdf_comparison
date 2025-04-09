@@ -30,7 +30,7 @@ pdf_comparison_tool/
 1.Clone the repo:
 
 ```
-git clone <repo-url>
+git clone https://github.com/naanu1/pdf_comparison.git
 cd pdf_comparison_tool
 
 2.create virtual environment
