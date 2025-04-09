@@ -1,0 +1,47 @@
+# Technical Document: PDF Comparison Tool
+
+Hey! I’m excited to share how I built this PDF comparison tool, the decisions I made, and what I’d do next if I had more time. Let’s break it down.
+
+## Approach to Text Extraction and Comparison
+
+### Text Extraction
+I needed a way to pull text out of PDFs—both regular text-based ones and tricky scanned ones. Here’s how I did it:
+- **Step 1: Direct Extraction**: I used `pdfplumber` to grab text from each page. It’s fast and works great for PDFs with embedded text (like `original.pdf` with “Hello World”).
+- **Step 2: OCR Fallback**: If no text came up (e.g., `modified.pdf` as an image), I switched to OCR. I extracted images from the PDF with `pdfplumber`, converted them to Pillow images, and ran `pytesseract` to get the text. This combo handles both cases nicely.
+- **Validation**: If nothing was extracted, I raised an error to let the user know something’s off.
+
+### Text Comparison
+Once I had the text, I needed to spot the differences:
+- I used Python’s `difflib.Differ` to compare the texts line-by-line. It tags lines with `+` (added), `-` (removed), or ` ` (unchanged).
+- I wrote a loop to process these tags:
+  - `+` → “added” (green).
+  - `-` alone → “removed” (red).
+  - `-` then `+` → “modified” (yellow), combining old and new text.
+  - ` ` → “unchanged” (no color).
+- The output is a list of changes and a summary counting each type, perfect for the UI.
+
+## Libraries Chosen and Rationale
+- **FastAPI**: For the backend—super fast, async-friendly, and easy to set up an API endpoint. It handles file uploads smoothly.
+- **Streamlit**: For the frontend—it’s quick to build interactive UIs with Python, 
+- **pdfplumber**: Great for text extraction, plus it can pull images for OCR. It’s more reliable than alternatives like PyPDF2.
+- **pytesseract**: Industry-standard OCR, works well with Pillow images from PDFs.
+- **difflib**: Built-in, simple, and effective for line-by-line diffs.
+- **requests**: Standard for HTTP POST requests from frontend to backend.
+- **aiofiles**: Added for async file writing, boosting performance.
+- **python-dotenv**: Keeps config (like URLs) out of code, a production must.
+
+I picked these because they’re well-tested, widely used, and fit the task perfectly—balancing speed, reliability, and ease of use.
+
+## Challenges Faced and How I Overcame Them
+
+- **Temp File Mess**: Temp files from uploads stuck around after crashes, cluttering the server. I stuck a `finally` block in to delete them every time, keeping things tidy no matter what.
+
+## Future Improvements
+If I had more time, here’s what I’d tackle:
+- **Database Storage and LLM Chatbot**: Right now, extracted text, differences, and summaries vanish after each comparison. I’d love to store them in a database (like SQLite for simplicity or PostgreSQL for scale). That way, users could revisit past comparisons. Then, I’d hook up a large language model (LLM) to the database via a tool like LangChain, giving it access to the stored text and a knowledge base (e.g., FAQs or PDF metadata). Picture this: a chatbot where users could ask, “What changed in my last upload?” or “Summarize all my PDFs from last week.” It’d make the tool way more interactive and useful.
+- **Analytics Dashboard**: With data in a database, I’d build a dashboard in Streamlit—think charts showing how many additions, deletions, or modifications you’ve had over time, or stats on PDF sizes and processing times. Users could spot trends, like “Wow, I’ve been editing a lot lately!” It’d turn this into a power tool for tracking document changes.
+- **UI**: using nextjs or reactjs for flexibility and then for performance.
+- **Security**: Sanitize uploads to block malicious files and add API rate limiting to prevent abuse.
+- **Testing**: Write proper unit tests for edge cases—encrypted PDFs, huge files, you name it.
+- **Deployment**: Dockerize it with a `Dockerfile` and set up CI/CD with GitHub Actions for smooth updates.
+
