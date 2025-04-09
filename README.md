@@ -31,7 +31,7 @@ pdf_comparison_tool/
 
 ```
 git clone https://github.com/naanu1/pdf_comparison.git
-cd pdf_comparison_tool
+
 
 2.create virtual environment
 python -m venv venv
